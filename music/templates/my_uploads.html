@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Uploads - Sangabiz{% endblock %}
+
+{% block content %}
+<div class="container">
+    <section class="section-header" style="margin-bottom: 40px;">
+        <h2 class="section-title">
+            <i class="fas fa-cloud-upload-alt"></i>
+            My Uploads
+        </h2>
+        <div class="view-controls">
+            <a href="{% url 'upload_music' %}" class="primary-btn">
+                <i class="fas fa-plus"></i>
+                Upload New Song
+            </a>
+        </div>
+    </section>
+
+    {% if songs %}
+    <div class="mdundo-song-list">
+        {% for song in songs %}
+        <div class="mdundo-song-item">
+            <div class="song-image">
+                <img src="{% if song.cover_image %}{{ song.cover_image.url }}{% else %}{% static 'images/default-cover.jpg' %}{% endif %}" 
+                     alt="{{ song.title }}">
+            </div>
+            <div class="song-details">
+                <div class="song-title-artist">
+                    <h4 class="song-title">{{ song.title }}</h4>
+                    <p class="song-artist">{{ song.genre.name }}</p>
+                </div>
+                <div class="song-meta-info">
+                    <span class="song-status {% if song.is_approved %}status-approved{% else %}status-pending{% endif %}">
+                        {% if song.is_approved %}Approved{% else %}Pending Review{% endif %}
+                    </span>
+                    <span class="song-duration">{{ song.upload_date|date:"M d, Y" }}</span>
+                </div>
+            </div>
+            <div class="song-stats">
+                <div class="stat">
+                    <i class="fas fa-play"></i>
+                    <span>{{ song.plays }}</span>
+                </div>
+                <div class="stat">
+                    <i class="fas fa-download"></i>
+                    <span>{{ song.downloads }}</span>
+                </div>
+            </div>
+            <div class="song-actions">
+                <button class="mdundo-play-btn" onclick="playSong({{ song.id }})">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="mdundo-download-btn" onclick="editSong({{ song.id }})">
+                    <i class="fas fa-edit"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-results" style="display: block;">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <h3>No Uploads Yet</h3>
+        <p>Start sharing your music with the world!</p>
+        <a href="{% url 'upload_music' %}" class="primary-btn" style="margin-top: 20px;">
+            Upload Your First Song
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
