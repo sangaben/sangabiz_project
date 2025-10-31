@@ -5,28 +5,22 @@
 
 {% block content %}
 <div class="container">
-    <!-- Search and Filter Section -->
-    <section class="search-section" style="margin-bottom: 40px;">
-        <div class="search-controls">
-            <div class="search-bar">
-                <i class="fas fa-search"></i>
-                <input type="text" id="discover-search" placeholder="Search songs, artists..." onkeyup="filterSongs()">
-            </div>
-            <div class="filter-controls">
-                <select id="genre-filter" onchange="filterSongs()">
-                    <option value="">All Genres</option>
-                    {% for genre in genres %}
-                    <option value="{{ genre.name }}">{{ genre.name }}</option>
-                    {% endfor %}
-                </select>
-                <select id="sort-by" onchange="sortSongs()">
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="plays">Most Plays</option>
-                    <option value="downloads">Most Downloads</option>
-                    <option value="title">Title A-Z</option>
-                </select>
-            </div>
+    <!-- Filter Controls Section (without search bar) -->
+    <section class="filter-section" style="margin-bottom: 40px;">
+        <div class="filter-controls">
+            <select id="genre-filter" onchange="filterSongs()">
+                <option value="">All Genres</option>
+                {% for genre in genres %}
+                <option value="{{ genre.name }}">{{ genre.name }}</option>
+                {% endfor %}
+            </select>
+            <select id="sort-by" onchange="sortSongs()">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="plays">Most Plays</option>
+                <option value="downloads">Most Downloads</option>
+                <option value="title">Title A-Z</option>
+            </select>
         </div>
     </section>
 
@@ -50,8 +44,8 @@
             </div>
         </div>
         
-        <!-- Grid View (Hidden by default) -->
-        <div class="featured-grid" id="discover-songs" style="display: none;">
+        <!-- Grid View (Hidden by Default) -->
+        <div class="featured-grid" style="display: none;">
             {% for song in songs %}
             <div class="song-card" data-song-id="{{ song.id }}" 
                  data-title="{{ song.title|lower }}" 
@@ -60,7 +54,7 @@
                  data-plays="{{ song.plays }}"
                  data-downloads="{{ song.downloads }}"
                  data-upload-date="{{ song.upload_date|date:'Y-m-d' }}">
-                <div class="card-image" style="background-image: url('{% if song.cover_image %}{{ song.cover_image.url }}{% else %}{% static 'images/default-cover.jpg' %}{% endif %}')">
+                <div class="card-image" style="background-image: url('{% if song.cover_image %}{{ song.cover_image.url }}{% else %}{% static 'images/default-cover.jpg' %}{% endif %}');">
                     <div class="play-overlay">
                         <button class="play-btn-large" onclick="playSongFromCard({{ song.id }})">
                             <i class="fas fa-play"></i>
@@ -69,8 +63,7 @@
                 </div>
                 <div class="card-content">
                     <h3>{{ song.title }}</h3>
-                    <p>{{ song.artist.name }} • {{ song.genre.name }}</p>
-                    
+                    <p>{{ song.artist.name }}</p>
                     <div class="song-stats">
                         <div class="stat-item">
                             <i class="fas fa-play"></i>
@@ -85,24 +78,25 @@
                             <span>{{ song.duration|time:"i:s" }}</span>
                         </div>
                     </div>
-                    
                     <div class="card-actions">
-                        <button class="play-btn" onclick="playSongFromCard({{ song.id }})" title="Play">
+                        <button class="play-btn" onclick="playSongFromCard({{ song.id }})">
                             <i class="fas fa-play"></i>
                         </button>
                         <div class="action-buttons">
-                            <button class="action-btn" onclick="likeSong({{ song.id }}, this)" title="Like">
-                                <i class="far fa-heart"></i>
-                            </button>
                             <button class="download-btn" onclick="downloadSong({{ song.id }}, this)" title="Download">
                                 <i class="fas fa-download"></i>
                             </button>
+                            {% if user.is_authenticated %}
+                            <button class="action-btn" onclick="likeSong({{ song.id }}, this)" title="Like">
+                                <i class="far fa-heart"></i>
+                            </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
             {% empty %}
-            <div class="no-results" style="display: block; grid-column: 1 / -1;">
+            <div class="no-results" style="display: block;">
                 <i class="fas fa-music"></i>
                 <h3>No songs available</h3>
                 <p>Check back later for new songs</p>
@@ -140,7 +134,7 @@
                     </div>
                 </div>
                 
-                <!-- Song Stats -->
+                <!-- Song Stats - Always Visible -->
                 <div class="song-stats">
                     <div class="stat">
                         <i class="fas fa-play"></i>
@@ -217,59 +211,20 @@
 
 {% block extra_css %}
 <style>
-/* Search Section */
-.search-section {
+/* Filter Section */
+.filter-section {
     background: var(--card-bg);
-    padding: 30px;
+    padding: 25px 30px;
     border-radius: 15px;
     border: 1px solid rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
 }
 
-.search-controls {
+.filter-controls {
     display: flex;
     gap: 20px;
     align-items: center;
-}
-
-.search-bar {
-    flex: 1;
-    min-width: 300px;
-    position: relative;
-}
-
-.search-bar i {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--gray);
-}
-
-.search-bar input {
-    width: 100%;
-    padding: 15px 15px 15px 45px;
-    border-radius: 25px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.1);
-    color: var(--light);
-    font-size: 16px;
-    backdrop-filter: blur(10px);
-}
-
-.search-bar input::placeholder {
-    color: rgba(255,255,255,0.5);
-}
-
-.search-bar input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
-}
-
-.filter-controls {
-    display: flex;
-    gap: 15px;
+    justify-content: flex-end;
 }
 
 .filter-controls select {
@@ -281,11 +236,13 @@
     font-size: 14px;
     backdrop-filter: blur(10px);
     cursor: pointer;
+    min-width: 150px;
 }
 
 .filter-controls select:focus {
     outline: none;
     border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
 }
 
 /* Section Header */
@@ -367,6 +324,7 @@
     transition: var(--transition);
     cursor: pointer;
     gap: 20px;
+    position: relative;
 }
 
 .mdundo-song-item:last-child {
@@ -453,7 +411,7 @@
     font-weight: 500;
 }
 
-/* Song Stats */
+/* Song Stats - Always Visible */
 .song-stats {
     display: flex;
     gap: 20px;
@@ -814,24 +772,17 @@
     100% { transform: rotate(360deg); }
 }
 
-/* Mobile Responsive Design */
+/* Mobile Responsive Design - Stats Always Visible */
 @media (max-width: 768px) {
-    .search-controls {
+    .filter-controls {
         flex-direction: column;
         gap: 15px;
-    }
-    
-    .search-bar {
-        min-width: 100%;
-    }
-    
-    .filter-controls {
-        width: 100%;
-        justify-content: space-between;
+        align-items: stretch;
     }
     
     .filter-controls select {
-        flex: 1;
+        width: 100%;
+        min-width: auto;
     }
     
     .section-header {
@@ -845,10 +796,11 @@
         justify-content: space-between;
     }
     
-    /* Mobile Mdundo List View */
+    /* Mobile Mdundo List View - Stats Always Visible */
     .mdundo-song-item {
         padding: 12px 15px;
         gap: 15px;
+        position: relative;
     }
     
     .song-image {
@@ -864,8 +816,25 @@
         font-size: 13px;
     }
     
+    /* Show stats on mobile but make them compact */
     .song-stats {
-        display: none;
+        display: flex !important;
+        gap: 15px;
+        margin: 0 15px;
+    }
+    
+    .stat {
+        font-size: 11px;
+        gap: 4px;
+    }
+    
+    .stat i {
+        font-size: 10px;
+    }
+    
+    .stat-count {
+        min-width: auto;
+        font-size: 10px;
     }
     
     .song-actions {
@@ -875,10 +844,20 @@
     .mdundo-play-btn,
     .mdundo-download-btn,
     .mdundo-like-btn {
-        width: 38px;
-        height: 38px;
-        font-size: 14px;
+        width: 36px;
+        height: 36px;
+        font-size: 13px;
         padding: 8px;
+    }
+    
+    /* Adjust song details to accommodate stats */
+    .song-details {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .song-meta-info {
+        margin-top: 4px;
     }
     
     .genres-grid {
@@ -888,7 +867,7 @@
 }
 
 @media (max-width: 480px) {
-    .search-section {
+    .filter-section {
         padding: 20px;
     }
     
@@ -920,6 +899,24 @@
         gap: 10px;
     }
     
+    .song-stats {
+        gap: 12px;
+        margin: 0 10px;
+    }
+    
+    .stat {
+        font-size: 10px;
+        gap: 3px;
+    }
+    
+    .stat i {
+        font-size: 9px;
+    }
+    
+    .stat-count {
+        font-size: 9px;
+    }
+    
     .song-actions {
         gap: 6px;
     }
@@ -927,9 +924,9 @@
     .mdundo-play-btn,
     .mdundo-download-btn,
     .mdundo-like-btn {
-        width: 34px;
-        height: 34px;
-        font-size: 13px;
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
         padding: 6px;
     }
     
@@ -940,15 +937,6 @@
 }
 
 @media (max-width: 360px) {
-    .filter-controls {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .filter-controls select {
-        width: 100%;
-    }
-    
     .view-buttons {
         gap: 5px;
     }
@@ -960,10 +948,89 @@
     
     .mdundo-song-item {
         gap: 10px;
+        padding: 8px 10px;
     }
     
     .song-details {
         min-width: 120px;
+    }
+    
+    .song-image {
+        width: 42px;
+        height: 42px;
+    }
+    
+    .song-stats {
+        gap: 10px;
+        margin: 0 8px;
+    }
+    
+    .stat {
+        font-size: 9px;
+    }
+    
+    .stat-count {
+        font-size: 9px;
+    }
+    
+    .song-actions {
+        gap: 5px;
+    }
+    
+    .mdundo-play-btn,
+    .mdundo-download-btn,
+    .mdundo-like-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 11px;
+        padding: 5px;
+    }
+}
+
+/* Extra Small Devices */
+@media (max-width: 320px) {
+    .mdundo-song-item {
+        padding: 6px 8px;
+        gap: 8px;
+    }
+    
+    .song-image {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .song-title {
+        font-size: 13px;
+    }
+    
+    .song-artist {
+        font-size: 11px;
+    }
+    
+    .song-stats {
+        gap: 8px;
+        margin: 0 6px;
+    }
+    
+    .stat {
+        font-size: 8px;
+    }
+    
+    .stat-count {
+        font-size: 8px;
+    }
+    
+    .song-actions {
+        gap: 4px;
+    }
+    
+    .mdundo-play-btn,
+    .mdundo-download-btn,
+    .mdundo-like-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 10px;
+        padding: 4px;
     }
 }
 </style>
@@ -975,9 +1042,43 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeDiscoverPlaylist();
     updateResultsCount();
+    setupSearchIntegration();
+    ensureMobileStatsVisibility();
+    
+    // Also update on window resize
+    window.addEventListener('resize', ensureMobileStatsVisibility);
 });
 
-// Initialize playlist with discover songs
+// Ensure stats are always visible on mobile
+function ensureMobileStatsVisibility() {
+    const statsElements = document.querySelectorAll('.song-stats');
+    statsElements.forEach(stats => {
+        stats.style.display = 'flex';
+    });
+}
+
+// Setup integration with base.html search bar
+function setupSearchIntegration() {
+    const baseSearchInput = document.getElementById('search-input');
+    if (baseSearchInput) {
+        // Clear any existing search when coming to discover page
+        baseSearchInput.value = '';
+        
+        // Add event listener to base search bar
+        baseSearchInput.addEventListener('input', function() {
+            filterSongs();
+        });
+        
+        // Add event listener for Enter key in base search
+        baseSearchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                filterSongs();
+            }
+        });
+    }
+}
+
+// Initialize playlist with discover songs for the base.html player
 function initializeDiscoverPlaylist() {
     const discoverSongs = [
         {% for song in songs %}
@@ -985,61 +1086,140 @@ function initializeDiscoverPlaylist() {
             id: {{ song.id }},
             title: "{{ song.title|escapejs }}",
             artist: "{{ song.artist.name|escapejs }}",
-            genre: "{{ song.genre.name|escapejs }}",
-            cover: "{% if song.cover_image %}{{ song.cover_image.url }}{% else %}{% static 'images/default-cover.jpg' %}{% endif %}",
             audio: "{{ song.audio_file.url }}",
+            cover: "{% if song.cover_image %}{{ song.cover_image.url }}{% else %}{% static 'images/default-cover.jpg' %}{% endif %}",
             duration: {{ song.duration }},
             plays: {{ song.plays }},
             downloads: {{ song.downloads }},
-            upload_date: "{{ song.upload_date|date:'Y-m-d' }}"
+            genre: "{{ song.genre.name|escapejs }}"
         },
         {% endfor %}
     ];
     
-    if (typeof initializePlaylist === 'function') {
-        initializePlaylist(discoverSongs);
-    }
+    // Store the discover playlist globally for the base player to use
+    window.discoverPlaylist = discoverSongs;
 }
 
-// Play song from card
+// Play song from card using the base.html player
 function playSongFromCard(songId) {
-    if (typeof playSong === 'function') {
-        const song = window.currentPlaylist?.find(s => s.id === songId);
-        if (song) {
-            playSong(song);
-            updatePlayCount(songId);
-        } else {
-            fetch(`/play-song/${songId}/`)
-                .then(response => response.json())
-                .then(songData => {
-                    playSong(songData);
-                    updatePlayCount(songId);
-                })
-                .catch(error => {
-                    console.error('Error playing song:', error);
-                    showNotification('Error playing song', 'error');
-                });
-        }
+    // Get the song data from our discover playlist
+    const song = window.discoverPlaylist?.find(s => s.id === songId);
+    
+    if (song && typeof window.playSong === 'function') {
+        // Use the base.html player function
+        window.playSong(song, window.discoverPlaylist, window.discoverPlaylist.findIndex(s => s.id === songId));
+        
+        // Track the play
+        trackSongPlay(songId);
+        
+        // Update UI play count
+        updatePlayCount(songId);
+    } else {
+        console.error('Song not found or player not available');
     }
 }
 
-// Update play count after playing
+// Track song play in the database
+function trackSongPlay(songId) {
+    fetch(`/track-play/${songId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    }).catch(error => {
+        console.error('Error tracking play:', error);
+    });
+}
+
+// Update play count in the UI
 function updatePlayCount(songId) {
     const playElements = document.querySelectorAll(`[data-song-id="${songId}"] .stat-count, [data-song-id="${songId}"] .plays-count`);
     playElements.forEach(element => {
-        const currentCount = parseInt(element.textContent);
+        const currentCount = parseInt(element.textContent) || 0;
         element.textContent = currentCount + 1;
     });
     
+    // Update data attribute for filtering
     const songCards = document.querySelectorAll(`[data-song-id="${songId}"]`);
     songCards.forEach(card => {
-        card.dataset.plays = parseInt(card.dataset.plays) + 1;
+        const currentPlays = parseInt(card.dataset.plays) || 0;
+        card.dataset.plays = currentPlays + 1;
+    });
+}
+
+// Download song function
+function downloadSong(songId, buttonElement) {
+    if (typeof window.downloadWithWatermark === 'function') {
+        const song = window.discoverPlaylist?.find(s => s.id === songId);
+        if (song) {
+            window.downloadWithWatermark(song.audio, song.title, song.artist);
+            
+            // Update download count in UI
+            updateDownloadCount(songId);
+        }
+    } else {
+        // Fallback to direct download
+        window.open(`/download-song/${songId}/`, '_blank');
+        updateDownloadCount(songId);
+    }
+}
+
+// Update download count in the UI
+function updateDownloadCount(songId) {
+    const downloadElements = document.querySelectorAll(`[data-song-id="${songId}"] .stat-count, [data-song-id="${songId}"] .downloads-count`);
+    downloadElements.forEach(element => {
+        const currentCount = parseInt(element.textContent) || 0;
+        element.textContent = currentCount + 1;
+    });
+    
+    // Update data attribute for filtering
+    const songCards = document.querySelectorAll(`[data-song-id="${songId}"]`);
+    songCards.forEach(card => {
+        const currentDownloads = parseInt(card.dataset.downloads) || 0;
+        card.dataset.downloads = currentDownloads + 1;
+    });
+}
+
+// Like song function
+function likeSong(songId, buttonElement) {
+    fetch(`/like-song/${songId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update heart icon
+            const heartIcon = buttonElement.querySelector('i');
+            if (data.action === 'liked') {
+                heartIcon.className = 'fas fa-heart';
+                heartIcon.style.color = 'var(--primary)';
+                buttonElement.title = 'Remove from Liked Songs';
+                showNotification(data.message, 'success');
+            } else {
+                heartIcon.className = 'far fa-heart';
+                heartIcon.style.color = '';
+                buttonElement.title = 'Add to Liked Songs';
+                showNotification(data.message, 'success');
+            }
+        } else {
+            showNotification(data.message || 'Error updating like status', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error updating like status', 'error');
     });
 }
 
 // Filter songs based on search and genre
 function filterSongs() {
-    const searchTerm = document.getElementById('discover-search').value.toLowerCase();
+    const baseSearchInput = document.getElementById('search-input');
+    const searchTerm = baseSearchInput ? baseSearchInput.value.toLowerCase() : '';
     const genreFilter = document.getElementById('genre-filter').value;
     
     const gridSongs = document.querySelectorAll('.featured-grid .song-card');
@@ -1141,13 +1321,57 @@ function updateResultsCount(count = null) {
     }
 }
 
-// Utility functions
-function showNotification(message, type = 'info') {
-    alert(`${type.toUpperCase()}: ${message}`);
+// Utility function to get CSRF token (from base.html)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 
-// Make functions globally available
+// Show notification (compatible with base.html)
+function showNotification(message, type = 'info') {
+    // Try to use base.html notification system first
+    if (typeof window.showMessage === 'function') {
+        window.showMessage(message, type);
+    } 
+    // Fallback to simple alert
+    else {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 10000;
+            background: ${type === 'success' ? 'var(--primary)' : type === 'error' ? '#dc3545' : '#17a2b8'};
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+}
+
+// Make functions globally available for base.html integration
 window.playSongFromCard = playSongFromCard;
+window.downloadSong = downloadSong;
+window.likeSong = likeSong;
 window.filterSongs = filterSongs;
 window.sortSongs = sortSongs;
 window.toggleView = toggleView;
